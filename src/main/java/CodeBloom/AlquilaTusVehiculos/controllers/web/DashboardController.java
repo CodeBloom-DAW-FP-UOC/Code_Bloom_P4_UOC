@@ -1,4 +1,4 @@
-package CodeBloom.AlquilaTusVehiculos.controllers;
+package CodeBloom.AlquilaTusVehiculos.controllers.web;
 
 import CodeBloom.AlquilaTusVehiculos.repositories.RentalRepository;
 import CodeBloom.AlquilaTusVehiculos.repositories.UserRepository;
