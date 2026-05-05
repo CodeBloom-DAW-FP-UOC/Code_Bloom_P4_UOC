@@ -3,7 +3,6 @@ services:
     build: .
     ports:
       - "8080:8080"
-      - "35729:35729"   # LiveReload (Spring DevTools)
     environment:
       SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
