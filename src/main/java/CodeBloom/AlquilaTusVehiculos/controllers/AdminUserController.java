@@ -4,6 +4,8 @@ import CodeBloom.AlquilaTusVehiculos.models.Role;
 import CodeBloom.AlquilaTusVehiculos.models.User;
 import CodeBloom.AlquilaTusVehiculos.repositories.RoleRepository;
 import CodeBloom.AlquilaTusVehiculos.repositories.UserRepository;
+import CodeBloom.AlquilaTusVehiculos.services.RoleService;
+import CodeBloom.AlquilaTusVehiculos.services.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,30 +19,30 @@ import java.util.Set;
 @RequestMapping("/admin/users")
 public class AdminUserController {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final UserService userService;
+    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminUserController(UserRepository userRepository,
-                               RoleRepository roleRepository,
+    public AdminUserController(UserService userService,
+                               RoleService roleService,
                                PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+        this.userService = userService;
+        this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
     public String listUsers(Model model) {
-        model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("user", new User());
         return "users/users";
     }
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
-        Optional<User> user = userRepository.findById(id);
+        Optional<User> user = userService.getUserById(id);
         if (user.isEmpty()) return "redirect:/admin/users";
-        model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("user", user.get());
         return "users/users";
     }
@@ -51,33 +53,33 @@ public class AdminUserController {
             // Usuario nuevo: encriptar contraseña y asignar ROLE_USER
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setEnabled(true);
-            Role userRole = roleRepository.findByName("ROLE_USER")
+            Role userRole = roleService.getRoleByName("ROLE_USER")
                     .orElseThrow(() -> new RuntimeException("Rol ROLE_USER no encontrado"));
             Set<Role> roles = new HashSet<>();
             roles.add(userRole);
             user.setRoles(roles);
         } else {
             // Usuario existente: mantener contraseña y roles anteriores
-            Optional<User> existing = userRepository.findById(user.getId());
+            Optional<User> existing = userService.getUserById(user.getId());
             existing.ifPresent(e -> {
                 user.setPassword(e.getPassword());
                 user.setRoles(e.getRoles());
                 user.setEnabled(e.isEnabled());
             });
         }
-        userRepository.save(user);
+        userService.saveUser(user);
         return "redirect:/admin/users";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
-        Optional<User> user = userRepository.findById(id);
+        Optional<User> user = userService.getUserById(id);
         if (user.isPresent()) {
             User u = user.get();
             u.getRentals().forEach(r -> r.setUser(null));
             u.getRoles().clear();
-            userRepository.save(u);
-            userRepository.deleteById(id);
+            userService.saveUser(u);
+            userService.deleteUser(id);
         }
         return "redirect:/admin/users";
     }
