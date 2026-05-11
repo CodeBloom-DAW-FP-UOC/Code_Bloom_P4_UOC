@@ -43,7 +43,8 @@ public class RentalService {
         return rentalRepository.findById(id);
     }
 
-    public Rental saveRental(Rental newRental, LocalDateTime startDate, LocalDateTime estimatedReturnDate) {
+    @Transactional
+    public Rental saveRental(Rental newRental) {
         if (newRental.getUser() == null || newRental.getUser().getId() == null) {
             throw new IllegalArgumentException("Debes seleccionar un cliente.");
         }
@@ -52,17 +53,7 @@ public class RentalService {
             throw new IllegalArgumentException("Debes seleccionar un vehículo.");
         }
 
-        if (startDate == null || estimatedReturnDate == null) {
-            throw new IllegalArgumentException("Debes indicar ambas fechas.");
-        }
-
-        if (startDate.toLocalDate().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("La fecha de inicio no puede ser anterior a hoy.");
-        }
-
-        if (estimatedReturnDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la fecha de inicio.");
-        }
+        validateRentalDates(newRental.getStartDate(), newRental.getEstimatedReturnDate());
 
         User user = userRepository.findById(newRental.getUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("El cliente seleccionado no existe."));
@@ -70,54 +61,37 @@ public class RentalService {
         Vehicle vehicle = vehicleRepository.findById(newRental.getVehicle().getId())
                 .orElseThrow(() -> new IllegalArgumentException("El vehículo seleccionado no existe."));
 
+        if (!isVehicleAvailable(vehicle.getId(), newRental.getStartDate(), newRental.getEstimatedReturnDate(), null)) {
+            throw new IllegalArgumentException("El vehículo no está disponible en estas fechas.");
+        }
+
         newRental.setUser(user);
         newRental.setVehicle(vehicle);
-        newRental.setStartDate(startDate);
-        newRental.setEstimatedReturnDate(estimatedReturnDate);
-
-        newRental.setPrice(calculateTotalPrice(startDate, estimatedReturnDate, vehicle.getDailyPrice()));
+        newRental.setEnabled(true);
+        newRental.setPrice(calculateTotalPrice(newRental.getStartDate(), newRental.getEstimatedReturnDate(), vehicle.getDailyPrice()));
 
         return rentalRepository.save(newRental);
     }
 
-
+    @Transactional
     public Rental updateRental(Long id, Rental rentalDetails) {
         Rental rental = rentalRepository.findById(id).orElseThrow(() -> new RuntimeException("Rental not found."));
 
-        if (rental.getUser() == null || rental.getUser().getId() == null) {
-            throw new IllegalArgumentException("Debes seleccionar un cliente.");
-        }
+        validateRentalDates(rentalDetails.getStartDate(), rentalDetails.getEstimatedReturnDate());
 
-        if (rental.getVehicle() == null || rental.getVehicle().getId() == null) {
-            throw new IllegalArgumentException("Debes seleccionar un vehículo.");
-        }
-
-        if (rental.getStartDate() == null || rental.getEstimatedReturnDate() == null) {
-            throw new IllegalArgumentException("Debes indicar ambas fechas.");
+        if (!isVehicleAvailable(rental.getVehicle().getId(), rentalDetails.getStartDate(), rentalDetails.getEstimatedReturnDate(), id)) {
+            throw new IllegalArgumentException("El vehículo no está disponible en las nuevas fechas.");
         }
 
         rental.setStartDate(rentalDetails.getStartDate());
-        if (rental.getStartDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("La fecha de inicio de no puede ser anterior a hoy.");
-        }
-
         rental.setEstimatedReturnDate(rentalDetails.getEstimatedReturnDate());
-        if (rental.getEstimatedReturnDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("La fecha de devolución de no puede ser anterior a hoy.");
-        }
-
-        if (rental.getEstimatedReturnDate().isBefore(rental.getStartDate())) {
-            throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la fecha de inicio.");
-        }
-
-        BigDecimal newPrice = calculateTotalPrice(rentalDetails.getStartDate(), rentalDetails.getEstimatedReturnDate(), rentalDetails.getVehicle().getDailyPrice());
-        rental.setPrice(newPrice);
-
         rental.setNote(rentalDetails.getNote());
+        rental.setPrice(calculateTotalPrice(rentalDetails.getStartDate(), rentalDetails.getEstimatedReturnDate(), rentalDetails.getVehicle().getDailyPrice()));
 
         return rentalRepository.save(rental);
     }
 
+    @Transactional
     public void softDeleteRental(Long id) {
         Rental rental = rentalRepository.findById(id).orElseThrow(() -> new RuntimeException("Rental not found."));
         rental.setEnabled(false);
@@ -140,5 +114,27 @@ public class RentalService {
     private BigDecimal calculateTotalPrice(LocalDateTime startDate, LocalDateTime estimatedReturnDate, double dailyPrice) {
         long days = ChronoUnit.DAYS.between(startDate, estimatedReturnDate) + 1;
         return BigDecimal.valueOf(dailyPrice).multiply(BigDecimal.valueOf(days));
+    }
+
+    private boolean isVehicleAvailable(Long vehicleId, LocalDateTime start, LocalDateTime end, Long currentRentalId) {
+        List<Rental> activeRentals = rentalRepository.findByVehicleIdAndEnabledTrue(vehicleId);
+
+        return activeRentals.stream()
+                .filter(r -> currentRentalId == null || !r.getId().equals(currentRentalId))
+                .noneMatch(r -> start.isBefore(r.getEstimatedReturnDate()) && end.isAfter(r.getStartDate()));
+    }
+
+    private void validateRentalDates(LocalDateTime start, LocalDateTime end) {
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("Debes indicar ambas fechas.");
+        }
+
+        if (start.toLocalDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser anterior a hoy.");
+        }
+
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la fecha de inicio.");
+        }
     }
 }
