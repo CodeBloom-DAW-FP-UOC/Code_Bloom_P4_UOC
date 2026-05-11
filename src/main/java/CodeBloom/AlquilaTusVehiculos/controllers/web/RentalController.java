@@ -54,7 +54,7 @@ public class RentalController {
                              Model model) {
 
         try {
-            rentalService.saveRental(rental, startDate, estimatedReturnDate);
+            rentalService.saveRental(rental);
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             loadFormData(model, rental);
