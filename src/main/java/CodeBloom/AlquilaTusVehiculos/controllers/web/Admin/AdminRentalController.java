@@ -1,4 +1,4 @@
-package CodeBloom.AlquilaTusVehiculos.controllers;
+package CodeBloom.AlquilaTusVehiculos.controllers.web.Admin;
 
 import CodeBloom.AlquilaTusVehiculos.models.Rental;
 import CodeBloom.AlquilaTusVehiculos.services.RentalService;
@@ -50,7 +50,7 @@ public class AdminRentalController {
                              @RequestParam("estimatedReturnDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate estimatedReturnDate,
                              Model model) {
         try {
-            rentalService.saveRental(rental, startDate.atStartOfDay(), estimatedReturnDate.atStartOfDay());
+            rentalService.saveRental(rental);
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             loadFormData(model, rental);
