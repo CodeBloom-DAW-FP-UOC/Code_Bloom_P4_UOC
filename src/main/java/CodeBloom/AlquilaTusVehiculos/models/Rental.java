@@ -26,10 +26,8 @@ public class Rental {
     private String note;
     private String state;
 
-    private boolean enabled = true;
-
     @Builder.Default
-    private boolean isEnabled = true;
+    private boolean enabled = true;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
