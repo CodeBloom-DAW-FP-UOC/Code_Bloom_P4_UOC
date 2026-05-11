@@ -1,9 +1,7 @@
-package CodeBloom.AlquilaTusVehiculos.controllers;
+package CodeBloom.AlquilaTusVehiculos.controllers.web.Admin;
 
 import CodeBloom.AlquilaTusVehiculos.models.Role;
 import CodeBloom.AlquilaTusVehiculos.models.User;
-import CodeBloom.AlquilaTusVehiculos.repositories.RoleRepository;
-import CodeBloom.AlquilaTusVehiculos.repositories.UserRepository;
 import CodeBloom.AlquilaTusVehiculos.services.RoleService;
 import CodeBloom.AlquilaTusVehiculos.services.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
