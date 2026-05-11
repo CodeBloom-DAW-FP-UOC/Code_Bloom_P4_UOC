@@ -1,6 +1,6 @@
 package CodeBloom.AlquilaTusVehiculos.controllers.web;
 
-import CodeBloom.AlquilaTusVehiculos.repositories.VehicleRepository;
+import CodeBloom.AlquilaTusVehiculos.services.VehicleService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -9,15 +9,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/vehicles")
 public class VehicleController {
 
-    private final VehicleRepository vehicleRepository;
+    private final VehicleService vehicleService;
 
-    public VehicleController(VehicleRepository vehicleRepository) {
-        this.vehicleRepository = vehicleRepository;
+    public VehicleController(VehicleService vehicleService) {
+        this.vehicleService = vehicleService;
     }
 
     @GetMapping
     public String listVehicles(Model model) {
-        model.addAttribute("vehicles", vehicleRepository.findAll());
+        model.addAttribute("vehicles", vehicleService.getAllVehicles());
         return "vehicles/list";
     }
 }
