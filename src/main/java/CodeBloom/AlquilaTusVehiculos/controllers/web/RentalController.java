@@ -1,4 +1,4 @@
-package CodeBloom.AlquilaTusVehiculos.controllers;
+package CodeBloom.AlquilaTusVehiculos.controllers.web;
 
 import CodeBloom.AlquilaTusVehiculos.models.Rental;
 import CodeBloom.AlquilaTusVehiculos.services.RentalService;
@@ -54,7 +54,7 @@ public class RentalController {
                              Model model) {
 
         try {
-            rentalService.saveRental(rental, startDate, estimatedReturnDate);
+            rentalService.saveRental(rental);
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             loadFormData(model, rental);

@@ -72,7 +72,7 @@ public class UserProfileController {
         rental.setUser(user);
 
         try {
-            rentalService.saveRental(rental, startDate.atStartOfDay(), estimatedReturnDate.atStartOfDay());
+            rentalService.saveRental(rental);
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("users", List.of(user));
