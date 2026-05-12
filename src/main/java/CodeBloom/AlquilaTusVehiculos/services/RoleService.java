@@ -3,10 +3,11 @@ package CodeBloom.AlquilaTusVehiculos.services;
 import CodeBloom.AlquilaTusVehiculos.models.Role;
 import CodeBloom.AlquilaTusVehiculos.models.User;
 import CodeBloom.AlquilaTusVehiculos.repositories.RoleRepository;
-
+import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class RoleService {
     private final RoleRepository roleRepository;
     private final UserService userService;
