@@ -1,5 +1,6 @@
 package CodeBloom.AlquilaTusVehiculos.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +40,7 @@ public class User {
 
     private boolean enabled = true;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Rental> rentals;
 
