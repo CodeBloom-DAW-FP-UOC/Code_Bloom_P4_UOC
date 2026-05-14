@@ -1,8 +1,8 @@
-package CodeBloom.AlquilaTusVehiculos.controllers;
+package CodeBloom.AlquilaTusVehiculos.controllers.web.Admin;
 
 import CodeBloom.AlquilaTusVehiculos.models.Vehicle;
-import CodeBloom.AlquilaTusVehiculos.repositories.RentalRepository;
-import CodeBloom.AlquilaTusVehiculos.repositories.VehicleRepository;
+import CodeBloom.AlquilaTusVehiculos.services.RentalService;
+import CodeBloom.AlquilaTusVehiculos.services.VehicleService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin/vehicles")
 public class AdminVehicleController {
 
-    private final VehicleRepository vehicleRepository;
-    private final RentalRepository rentalRepository;
+    private final VehicleService vehicleService;
+    private final RentalService rentalService;
 
-    public AdminVehicleController(VehicleRepository vehicleRepository,
-                                  RentalRepository rentalRepository) {
-        this.vehicleRepository = vehicleRepository;
-        this.rentalRepository = rentalRepository;
+    public AdminVehicleController(VehicleService vehicleService,
+                                  RentalService rentalService) {
+        this.vehicleService = vehicleService;
+        this.rentalService = rentalService;
     }
 
     @GetMapping("/new")
@@ -28,13 +28,13 @@ public class AdminVehicleController {
 
     @PostMapping("/save")
     public String saveVehicle(@ModelAttribute Vehicle vehicle) {
-        vehicleRepository.save(vehicle);
+        vehicleService.saveVehicle(vehicle);
         return "redirect:/vehicles";
     }
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
-        Vehicle vehicle = vehicleRepository.findById(id).orElse(null);
+        Vehicle vehicle = vehicleService.getVehicleById(id).orElse(null);
         if (vehicle == null) return "redirect:/vehicles";
         model.addAttribute("vehicle", vehicle);
         return "vehicles/form";
@@ -42,19 +42,19 @@ public class AdminVehicleController {
 
     @GetMapping("/delete/{id}")
     public String deleteVehicle(@PathVariable Long id) {
-        vehicleRepository.findById(id).ifPresent(vehicle -> {
+        vehicleService.getVehicleById(id).ifPresent(vehicle -> {
             vehicle.getRentals().forEach(rental -> {
                 rental.setVehicle(null);
-                rentalRepository.save(rental);
+                rentalService.saveRental(rental);
             });
-            vehicleRepository.delete(vehicle);
+            vehicleService.deleteVehicle(vehicle.getId());
         });
         return "redirect:/vehicles";
     }
 
     @GetMapping
     public String listVehicles(Model model) {
-        model.addAttribute("vehicles", vehicleRepository.findAll());
+        model.addAttribute("vehicles", vehicleService.getAllVehicles());
         return "vehicles/list";
     }
 }

@@ -30,7 +30,7 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicle not found."));
 
         vehicle.setDescription(vehicleDetails.getDescription());
-        vehicle.setDailyPrice(vehicle.getDailyPrice());
+        vehicle.setDailyPrice(vehicleDetails.getDailyPrice());
         vehicle.setKm(vehicleDetails.getKm());
         vehicle.setState(vehicleDetails.getState());
 
