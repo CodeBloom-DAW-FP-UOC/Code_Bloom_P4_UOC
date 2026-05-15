@@ -1,5 +1,6 @@
 package CodeBloom.AlquilaTusVehiculos.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -29,6 +30,7 @@ public class Vehicle {
     private String state;
 
     // Relación con Rental (1 vehículo → muchos rentals)
+    @JsonIgnore
     @OneToMany(mappedBy = "vehicle")
     private List<Rental> rentals;
 }
